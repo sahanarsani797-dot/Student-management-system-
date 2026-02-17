@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Student DB</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Segoe UI;
+    background:linear-gradient(135deg,#ffe6f0,#ffc1d6);
+    color:#880e4f;
+}
+
+h2{
+    text-align:center;
+    padding:12px;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:10px;
+}
+
+form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+    gap:6px;
+    background:#fff0f6;
+    padding:10px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+input,select{
+    padding:6px;
+    border:1px solid #f8bbd0;
+    border-radius:5px;
+    font-size:12px;
+    background:#fff;
+}
+
+button{
+    padding:6px;
+    border:none;
+    border-radius:5px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.add{background:#ec407a;color:#fff;}
+.update{background:#f06292;color:#fff;}
+
+table{
+    width:100%;
+    margin-top:15px;
+    border-collapse:collapse;
+    background:#fff0f6;
+    font-size:11px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+th,td{
+    border:1px solid #f8bbd0;
+    padding:5px;
+    text-align:center;
+}
+
+th{
+    background:#f06292;
+    color:#fff;
+}
+
+.edit{background:#d81b60;color:#fff;padding:3px;}
+.del{background:#c2185b;color:#fff;padding:3px;}
+
+@media(max-width:600px){
+    table{font-size:9px;}
+}
+
+</style>
+</head>
+<body>
+
+<h2>Student Database Management</h2>
+
+<div class="container">
+
+<form id="f">
+
+<input id="id" placeholder="Student ID" required>
+<input id="n" placeholder="Name" required>
+<input type="date" id="d" required>
+<input id="a" placeholder="Address" required>
+<input id="p" placeholder="Parents Name" required>
+
+<!-- 15 COURSES DROPDOWN -->
+<select id="c">
+<option value="">Select Course (Optional)</option>
+<option>BCA</option>
+<option>BSc</option>
+<option>BCom</option>
+<option>BA</option>
+<option>BBA</option>
+<option>BE</option>
+<option>BTech</option>
+<option>MCA</option>
+<option>MSc</option>
+<option>MCom</option>
+<option>MA</option>
+<option>MBA</option>
+<option>Diploma</option>
+<option>Pharmacy</option>
+<option>Nursing</option>
+</select>
+
+<input id="m" placeholder="Mobile No" required>
+<input type="number" id="per" placeholder="Percentage" required>
+<input id="g" placeholder="Grade (Auto)" readonly>
+<input id="col" placeholder="College Name" required>
+<input id="ca" placeholder="Caste" required>
+
+<button class="add" id="btn">Add</button>
+
+</form>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>DOB</th>
+<th>Address</th>
+<th>Parent</th>
+<th>Course</th>
+<th>Mobile</th>
+<th>%</th>
+<th>Grade</th>
+<th>College</th>
+<th>Caste</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="t"></tbody>
+</table>
+
+</div>
+
+<script>
+
+let s = JSON.parse(localStorage.getItem("s")) || [];
+let e = -1;
+
+const f = document.getElementById("f");
+const t = document.getElementById("t");
+const btn = document.getElementById("btn");
+
+/* ===== AUTO GRADE FUNCTION ===== */
+
+per.oninput = function(){
+
+    let p = parseFloat(per.value);
+    let grade = "";
+
+    if(p >= 90) grade = "A+";
+    else if(p >= 80) grade = "A";
+    else if(p >= 70) grade = "B";
+    else if(p >= 60) grade = "C";
+    else if(p >= 50) grade = "D";
+    else if(p >= 0) grade = "F";
+    else grade = "";
+
+    g.value = grade;
+};
+
+/* ===== DISPLAY ===== */
+
+function show(){
+
+    t.innerHTML = "";
+
+    s.forEach(function(x,i){
+
+        t.innerHTML += `
+        <tr>
+            <td>${x.id}</td>
+            <td>${x.n}</td>
+            <td>${x.d}</td>
+            <td>${x.a}</td>
+            <td>${x.p}</td>
+            <td>${x.c}</td>
+            <td>${x.m}</td>
+            <td>${x.per}</td>
+            <td>${x.g}</td>
+            <td>${x.col}</td>
+            <td>${x.ca}</td>
+            <td>
+                <button class="edit" onclick="ed(${i})">Edit</button>
+                <button class="del" onclick="del(${i})">Del</button>
+            </td>
+        </tr>`;
+    });
+
+    localStorage.setItem("s", JSON.stringify(s));
+}
+
+/* ===== SUBMIT ===== */
+
+f.onsubmit = function(x){
+
+    x.preventDefault();
+
+    let data = {
+        id:id.value,
+        n:n.value,
+        d:d.value,
+        a:a.value,
+        p:p.value,
+        c:c.value,
+        m:m.value,
+        per:per.value,
+        g:g.value,
+        col:col.value,
+        ca:ca.value
+    };
+
+    if(e == -1){
+        s.push(data);
+    }else{
+        s[e] = data;
+        e = -1;
+        btn.textContent = "Add";
+        btn.className = "add";
+    }
+
+    f.reset();
+    show();
+};
+
+/* ===== EDIT ===== */
+
+function ed(i){
+
+    let x = s[i];
+
+    id.value = x.id;
+    n.value = x.n;
+    d.value = x.d;
+    a.value = x.a;
+    p.value = x.p;
+    c.value = x.c;
+    m.value = x.m;
+    per.value = x.per;
+    g.value = x.g;
+    col.value = x.col;
+    ca.value = x.ca;
+
+    e = i;
+
+    btn.textContent = "Update";
+    btn.className = "update";
+}
+
+/* ===== DELETE ===== */
+
+function del(i){
+    if(confirm("Delete student?")){
+        s.splice(i,1);
+        show();
+    }
+}
+
+show();
+
+</script>
+</body>
+</html>
